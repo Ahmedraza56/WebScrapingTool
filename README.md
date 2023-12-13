@@ -1,5 +1,7 @@
 ![Alt text](webscrapingtool.png)
 
+
+
 The Web Scraping Tool is an application designed to offer a convenient interface for users to extract information from websites. By entering the URL of a target website, users can choose between two scraping options: retrieving data or collecting links. Here's what the program offers:
 
 SSL Handling: The tool uses urllib3 PoolManager to manage SSL connections, ensuring that secure HTTPS requests can be made without issues.
