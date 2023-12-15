@@ -1,7 +1,9 @@
-import streamlit as st
+from flask import Flask, render_template, request
 import requests
 from bs4 import BeautifulSoup
 import urllib3
+
+WebScrapingTool = Flask(__name__)
 
 def simple_web_scraper(url, scrape_option):
     try:
@@ -15,38 +17,41 @@ def simple_web_scraper(url, scrape_option):
         if response.status == 200:
             # Parse the HTML content of the page
             soup = BeautifulSoup(response.data, 'html.parser')
-            
+
             # Extract information from the HTML based on user's choice
             if scrape_option == 'data':
                 # Extract all text content from the page
                 all_text = soup.get_text()
-                
+
                 # Prepare data for the table (split text by lines)
                 table_data = [{'Data': line.strip()} for line in all_text.split('\n') if line.strip()]
-                
-                # Display the data in a table
-                st.table(table_data)
+
+                return table_data
             elif scrape_option == 'links':
                 # Example: Extract all the links on the page
                 links = soup.find_all('a')
-                
+
                 # Prepare data for the table
                 table_data = [{'Links': link.get('href')} for link in links]
-                
-                # Display the data in a table
-                st.table(table_data)
+
+                return table_data
             else:
-                st.write('Invalid scrape option. Please choose "data" or "links".')
+                return [{'Error': 'Invalid scrape option. Please choose "data" or "links".'}]
         else:
-            st.write(f'Error: {response.status}')
-    
+            return [{'Error': f'Error: {response.status}'}]
+
     except Exception as e:
-        st.write(f'An error occurred: {e}')
+        return [{'Error': f'An error occurred: {e}'}]
 
-# Streamlit UI
-st.title("Web Scraping Tool")
-website_url = st.text_input("Enter the URL to scrape:")
-scrape_option = st.selectbox("Select what to scrape:", ['data', 'links'])
+@WebScrapingTool.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        website_url = request.form['website_url']
+        scrape_option = request.form['scrape_option']
+        result = simple_web_scraper(website_url, scrape_option)
+        return render_template('WebScrapingTool.html', result=result)
 
-if st.button("Scrape"):
-    simple_web_scraper(website_url, scrape_option)
+    return render_template('WebScrapingTool.html', result=[])
+
+if __name__ == '__main__':
+    WebScrapingTool.run(debug=True)
